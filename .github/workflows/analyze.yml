@@ -1,0 +1,44 @@
+name: Analyze the code
+on:
+  pull_request:
+
+env:
+  CODESONAR_MACHINE: codesonar.praqma.cloud:7340
+  PROJECT_NAME: ${{ github.event.repository.name }}
+
+jobs:
+  codesonar:
+    runs-on: self-hosted
+    container:
+     image:  artifactory.dev.eficode.io/docker-dev-local/codesonar/cso-build-mariadb:6.1p0.20210621-1
+     credentials:
+       username: ${{ secrets.DOCKER_USERNAME }}
+       password: ${{ secrets.DOCKER_PASSWORD }}
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v2
+
+      - name: Analyze the code
+        run: |
+          codesonar analyze ${{ env.PROJECT_NAME }} -name ${{ env.PROJECT_NAME }} -foreground ${{ env.CODESONAR_MACHINE }} cmake . -DWITH_ARCHIVE_STORAGE_ENGINE=1 | tee analysis.log
+
+      - name: Download the Sarif file
+        run: |
+          export A_ID=$(cat ${GITHUB_WORKSPACE}/${{ env.PROJECT_NAME }}.prj_files/aid.txt)
+          codesonar dump_warnings.py -t 7200 --sarif --src-root ${GITHUB_WORKSPACE} --hub "${{ env.CODESONAR_MACHINE }}" --analysis-id ${A_ID} -o warnings.sarif
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          # Path to SARIF file relative to the root of the repository
+          sarif_file: warnings.sarif
+
+      # This step is optional, and only if you want to persist the log
+      - name: Upload sarif and analysis log
+        uses: actions/upload-artifact@v2
+        with:
+          name: codesonar-artifacts
+          path: |
+            warnings.sarif
+            analysis.log
