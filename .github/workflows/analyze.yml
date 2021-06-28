@@ -21,7 +21,7 @@ jobs:
 
       - name: Analyze the code
         run: |
-          codesonar analyze ${{ env.PROJECT_NAME }} -name ${{ env.PROJECT_NAME }} -foreground ${{ env.CODESONAR_MACHINE }} cmake . -DWITH_ARCHIVE_STORAGE_ENGINE=1 | tee analysis.log
+          codesonar analyze ${{ env.PROJECT_NAME }} -name ${{ env.PROJECT_NAME }} -foreground ${{ env.CODESONAR_MACHINE }} cmake . -DWITH_ARCHIVE_STORAGE_ENGINE=1 && make | tee analysis.log
 
       - name: Download the Sarif file
         run: |
