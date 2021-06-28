@@ -21,7 +21,8 @@ jobs:
 
       - name: Analyze the code
         run: |
-          codesonar analyze ${{ env.PROJECT_NAME }} -name ${{ env.PROJECT_NAME }} -foreground ${{ env.CODESONAR_MACHINE }} cmake . -DWITH_ARCHIVE_STORAGE_ENGINE=1 && make | tee analysis.log
+          git clean -xffd && git submodule foreach --recursive git clean -xffd
+          codesonar analyze ${{ env.PROJECT_NAME }} -name ${{ env.PROJECT_NAME }} -foreground ${{ env.CODESONAR_MACHINE }} cmake ../server -DCMAKE_BUILD_TYPE=Debug && make | tee analysis.log
 
       - name: Download the Sarif file
         run: |
