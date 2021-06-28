@@ -23,7 +23,8 @@ jobs:
         run: |
           git clean -xffd && git submodule foreach --recursive git clean -xffd
           cmake . -DCMAKE_BUILD_TYPE=Debug
-          codesonar analyze ${{ env.PROJECT_NAME }} -name ${{ env.PROJECT_NAME }} -foreground ${{ env.CODESONAR_MACHINE }} make | tee "$@" > /dev/null
+          codesonar analyze ${{ env.PROJECT_NAME }} -name ${{ env.PROJECT_NAME }} -background ${{ env.CODESONAR_MACHINE }} make &
+          wait $!
 
       - name: Download the Sarif file
         run: |
